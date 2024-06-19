@@ -4,3 +4,42 @@ body{
   height:100vh;
   width: 100vw;
 }
+
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.ant-picker-outlined{
+  border: none;
+  width:230px;
+}
+.ant-picker .ant-picker-suffix{
+  display: none;
+}
+.custom-placeholder{
+  color:'#333333';
+  font-family:'nunito';
+  font-size:14px;
+}
+.ant-pagination .ant-pagination-item-active{ 
+ border-radius:100%;
+ background-color:#247B7B;
+ color: white;
+ border:1px solid #247B7B;
+}
+.ant-pagination .ant-pagination-item-active a {
+  color:white
+}
+.ant-select-selector{
+display: none;
+}
+.ant-pagination .ant-pagination-options{
+  display: none;
+}
+.ant-switch.ant-switch-checked{
+  background-color: #6E0080;
+}
+.ant-switch.ant-switch-checked:hover:not(.ant-switch-disabled){
+  background-color: #6E0080; 
+}
