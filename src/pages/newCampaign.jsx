@@ -5,7 +5,7 @@ import { MdOutlineClose } from "react-icons/md";
 import { useNavigate } from "react-router";
 import { campaignService } from "../services/campaign_service";
 import SuccessMessage from "../components/modals/successMessage";
-// import {toast } from 'react-toastify';
+import {toast } from 'react-toastify';
 
 const Container = styled.div``;
 const Top = styled.div``;
@@ -83,6 +83,7 @@ const NewCampaign = () => {
       }
     } catch (err) {
       setIsLoading(false);
+      toast.danger('Request failed')
       // console.log("err is here", err);
     }
   };
