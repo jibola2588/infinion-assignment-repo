@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import styled from "styled-components";
 import img from "../assets/search.svg";
 import { IoChevronDownOutline } from "react-icons/io5";
@@ -7,6 +7,11 @@ import { Pagination } from "antd";
 import view from "../assets/viewIcon.svg";
 import edit from "../assets/editIcon.svg";
 import del from "../assets/delIcon.svg";
+import { campaignService } from "../services/campaign_service";
+import DeleteMessage from "../components/modals/deleteModal";
+import imgPlaceholder from '../assets/empty-place-holder.svg'
+import {toast } from 'react-toastify';
+import moment from "moment";
 
 const Container = styled.div``;
 const Top = styled.div``;
@@ -32,36 +37,197 @@ const Status = styled.div`
 `;
 
 const Campaign = () => {
-  const [campaign, setCampaign] = useState(false);
 
-  const onShowSizeChange = (current, pageSize) => {
-    console.log(current, pageSize);
+  const [campaign, setCampaign] = useState(true);
+  const [campaignData,setCampaignData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [active,setActive] = useState('');
+  const [inactive,setInActive] = useState('');
+  const [currentPage,setCurrentPage] = useState(1);
+  const [pageSize,setPageSize] = useState(10);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [campaignObj,setCampaignObj] = useState({})
+  const [isLoading,setIsLoading] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false);
+  const [id,setId] = useState('')
+
+  const [name, setName] = useState('');
+  const [des, setDesc] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [linkText,setLinKText] = useState('');
+  const [linkedArray,setLinkedArray] = useState([])
+  const [digest,setDigest] = useState('')
+  const [digestValue,setDigestValue] = useState('')
+
+  const startIndex = (currentPage - 1) * pageSize;
+ const endIndex = startIndex + pageSize;
+ const currentData = filteredData.slice(startIndex, endIndex);
+
+  const goBack = () => {
+    setCampaign(true)
+  }
+
+  const onShowSizeChange = (currentPage, pageSize) => {
+    console.log(currentPage, pageSize);
+    setCurrentPage(currentPage);
+    setPageSize(pageSize);
   };
 
-  const formatDate = (date) => {
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-
-    return `${day}/${month}/${year}`;
+  const formatDate = (item) => {
+    const date = moment(item);
+    return date.format('DD/MM/YYYY');
   };
 
-  const data = [
-    {
-      date: new Date("2020-11-12"),
-      name: "Infinion Tech",
-      status: "active",
-    },
-    {
-      date: new Date("2022-11-12"),
-      name: "Infinion Tech",
-      status: "inactive",
-    },
-  ];
+  const getAllCampaign = async () => { 
+   try {
+    const  res = await campaignService.getAllCampaign();
+    if(res.status == 200){ 
+      toast.success('campaign fetched successfully');
+      // console.log('res is here',res.data)
+      const data = res.data
+      setCampaignData(res.data);
+      setFilteredData(data);
+      setActive(res.data.filter(item => { 
+        return item.campaignStatus === 'Active'
+      }))
+      setInActive(res.data.filter(item => { 
+        return item.campaignStatus === 'Inactive'
+      }))
+    }
+  } catch (error) {
+    console.log('error is here',error);
+    toast.danger('Request failed');
+  }
+  }
+
+  const filterData = (status) => {
+    let data = campaignData;
+
+    if (status === 'Active') {
+      data = campaignData.filter(item => item.campaignStatus === 'Active');
+    } else if (status === 'Inactive') {
+      data = campaignData.filter(item => item.campaignStatus === 'Inactive');
+    }
+
+    // if (searchQuery) {
+    //   data = data.filter(item => item.campaignName.toLowerCase().includes(searchQuery.toLowerCase()));
+    // }
+
+    setFilteredData(data);
+  };
+
+  const handleSearch = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+
+    let data = campaignData;
+
+    if (query) {
+      data = data.filter(item => item.campaignName.toLowerCase().includes(query.toLowerCase()));
+    }
+
+    setFilteredData(data);
+    setCurrentPage(1);
+  };
+
+  const handlePaginationChange = (page, pageSize) => {
+    setCurrentPage(page);
+  };
+
+  useEffect(() => {
+    getAllCampaign();
+  }, []);
+
+  const viewCampaign = (item) => { 
+    setCampaign(false)
+    setCampaignObj(item)
+    setLinkedArray([...item.linkedKeywords])
+    setName(item.campaignName)
+    setStartDate(formatViewDate(item.startDate))
+    setEndDate(formatViewDate(item.endDate))
+    setDigestValue(item.digestCampaign)
+    setDigest(item.dailyDigest)
+    setDesc(item.campaignDescription)
+  }
+
+  const handleLinkedText = (event) => { 
+    if (event.key === 'Enter') {
+    event.preventDefault();
+    setLinkedArray(prevArray => [...prevArray, linkText]);
+    setLinKText('');
+  }
+ }
+
+ const deleteItem = (value) => { 
+  const result = linkedArray.filter(item => item !== value)
+  setLinkedArray([...result])
+ }
+
+ const formatViewDate = (dateString) => {
+  const date = moment(dateString);
+  return date.format('YYYY-MM-DD');
+};
+
+const stopCampaign = (id) => { 
+  setModalOpen(true) 
+  setId(id)
+}
+
+const convertDateToISO = (dateString) => {
+  if (dateString) {
+      const date = new Date(dateString);
+      return date.toISOString();
+    }
+    return '';
+};
+
+const data = {
+  "id": campaignObj.id,
+  "campaignName": name,
+  "startDate": convertDateToISO(startDate),
+  "endDate": convertDateToISO(endDate),
+  "digestCampaign":digestValue == 'Yes' ? true : false,
+  "linkedKeywords":linkedArray,
+  "dailyDigest": digest,
+  "campaignDescription":des
+}
+
+const editCampaign = async() => { 
+  setIsLoading(true)
+    try{ 
+    const res = await campaignService.editCampaign(data,campaignObj.id);
+    if(res){ 
+     setIsLoading(false)
+     toast.success('campaign successfully created')
+     console.log('res is here',res)
+    //  setTimeout(() => { 
+    //     navigate('/campaign')
+    //  },1500)
+     setName('');
+     setStartDate('')
+     setEndDate('')
+    setLinKText('')
+    setLinkedArray([])
+    setDigest('')    
+    setDigestValue('')
+    }
+    }catch(err){ 
+        setIsLoading(false)
+        // console.log('err is here',err)
+    }
+}
+
   return (
     <section>
       {campaign ? (
         <Container className="h-[100%] w-[100%] flex flex-col">
+        {modalOpen && <DeleteMessage 
+           setModalOpen = {setModalOpen}
+           modalOpen = {modalOpen}
+           goBack={goBack}
+           id={id}
+        />}
           <Top className="mt-6">
             <h3 className="text-xl mb-0 leading-7 font-semibold font-[work-sans] text-primary">
               All Campaigns
@@ -69,28 +235,28 @@ const Campaign = () => {
             <section className="my-6 flex items-center justify-between">
               <Left>
                 <div className="flex items-center gap-3">
-                  <StatusWrapper>
+                  <StatusWrapper onClick={() => filterData('All')}>
                     <span className="font-[nunito] font-semibold text-sm leading-5 text-primary">
                       All
                     </span>
                     <span className="font-[nunito] font-semibold text-xs leading-5 text-primary">
-                      (90)
+                    ({ campaignData && campaignData.length})
                     </span>
                   </StatusWrapper>
-                  <StatusWrapper>
+                  <StatusWrapper onClick={() => filterData('Inactive')}>
                     <span className="font-[nunito] font-semibold text-sm leading-5 text-primary">
                       Inactive
                     </span>
                     <span className="font-[nunito] font-semibold text-xs leading-5 text-primary">
-                      (90)
+                      ({ inactive && inactive.length})
                     </span>
                   </StatusWrapper>
-                  <StatusWrapper>
+                  <StatusWrapper onClick={() => filterData('Active')}>
                     <span className="font-[nunito] font-semibold text-sm leading-5 text-primary">
                       Active
                     </span>
                     <span className="font-[nunito] font-semibold text-xs leading-5 text-primary">
-                      (90)
+                    ({ active && active.length})
                     </span>
                   </StatusWrapper>
                 </div>
@@ -99,6 +265,8 @@ const Campaign = () => {
                 <div className="border border-[#999999] rounded-md py-2 px-[10px] w-[200px] flex items-center gap-1">
                   <input
                     placeholder="Search..."
+                    value={searchQuery}
+                    onChange={handleSearch}
                     className="bg-transparent border-none outline-none font-[nunito] text-xs leading-4 font-semibold text-[#666666] flex-1"
                   />
                   <img alt="image" src={img} />
@@ -112,7 +280,7 @@ const Campaign = () => {
               </Right>
             </section>
           </Top>
-          <Bottom>
+          {currentData.length > 0 ? <Bottom>
             <div className="overflow-x-auto">
               <table className="min-w-full bg-white text-sm">
                 <thead className="text-left bg-[#F0F4F4] rounded-md">
@@ -136,24 +304,24 @@ const Campaign = () => {
                 </thead>
 
                 <tbody>
-                  {data &&
-                    data.map((item, i) => (
+                  {currentData &&
+                    currentData.map((item, i) => (
                       <tr className="border-b border-[#F1F1F1]" key={i}>
                         <td className="whitespace-nowrap px-[10px] py-3 font-medium text-[#666666] text-sm leading-5 font-[nunito]">
                           {i + 1}.
                         </td>
                         <td className="whitespace-nowrap px-[10px] py-3 font-medium text-[#666666] text-sm leading-5 font-[nunito]">
-                          {item.name}
+                          {item.campaignName}
                         </td>
                         <td className="whitespace-nowrap px-[10px] py-3 font-medium text-[#666666] text-sm leading-5 font-[nunito]">
-                          {formatDate(item.date)}
+                          {formatDate(item.startDate)}
                         </td>
                         <td className="whitespace-nowrap px-[10px] py-3 font-medium  text-sm leading-5 font-[nunito]">
-                          <Status type={item.status}>{item.status}</Status>
+                          <Status type={item.campaignStatus}>{item.campaignStatus}</Status>
                         </td>
                         <td className="whitespace-nowrap px-[10px] py-3 font-medium text-[#666666] text-sm leading-5 font-[nunito]">
                           <div className="flex items-center gap-6">
-                            <span>
+                            <span onClick={() => viewCampaign(item)}>
                               <img
                                 src={view}
                                 alt="view icon"
@@ -162,15 +330,17 @@ const Campaign = () => {
                             </span>
                             <span>
                               <img
+                              onClick={() => viewCampaign(item)}
                                 src={edit}
-                                alt="view icon"
+                                alt="edit icon"
                                 className="cursor-pointer"
                               />
                             </span>
                             <span>
                               <img
+                              onClick={ () => stopCampaign(item)}
                                 src={del}
-                                alt="view icon"
+                                alt="delete icon"
                                 className="cursor-pointer"
                               />
                             </span>
@@ -181,25 +351,46 @@ const Campaign = () => {
                 </tbody>
               </table>
             </div>
-            <section className="mt-6 flex items-center justify-between">
+           {filteredData.length > 0 && <section className="mt-6 flex items-center justify-between mb-4">
               <div>
-                <Pagination
-                  showSizeChanger
-                  onShowSizeChange={onShowSizeChange}
-                  defaultCurrent={1}
-                  total={500}
-                />
+              <Pagination
+              showSizeChanger
+              onShowSizeChange={onShowSizeChange}
+              defaultCurrent={1}
+              current={currentPage}
+              pageSize={pageSize}
+              total={filteredData.length}
+              onChange={handlePaginationChange}
+            />
               </div>
               <div className="font-[nunito] font-medium text-sm leading-5 text-black">
-                showing 10 of 40 results
+                showing {currentPage} of {filteredData.length} results
               </div>
-            </section>
-          </Bottom>
+            </section>}
+          </Bottom> : 
+          (  
+            
+            <div className="space-y-6 flex flex-col items-center"> 
+              <img src={imgPlaceholder} alt='place holder'/>
+
+              <div className="mt-4 text-center font-[nunito] font-semibold">Data is empty </div> 
+            </div>
+          )
+          }
         </Container>
       ) : (
         <Container className="h-[100%] w-[100%] flex flex-col">
+       {modalOpen && <DeleteMessage 
+           setModalOpen = {setModalOpen}
+           modalOpen = {modalOpen}
+           id={id}
+           goBack={goBack}
+
+        />}
           <Top className="mt-6">
-            <div className="flex items-center gap-1">
+            <div 
+            onClick={goBack}
+            className="flex items-center gap-1 cursor-pointer">
               <MdKeyboardBackspace style={{ width: "24px", height: "24px" }} />
               <span className="font-[nunito] font-semibold text-base leading-6 text-[#33333]">
                 Back
@@ -217,8 +408,8 @@ const Campaign = () => {
                 <span className="pr-2 border-r border-[#999999] font-[nunito] font-medium text-sm leading-5 text-[#000000]">
                   Campaign Status
                 </span>
-                <span className="font-[nunito] font-medium text-sm leading-5 text-[#009918]">
-                  Active
+                <span className={`font-[nunito] font-medium text-sm leading-5 ${ campaignObj.campaignStatus == 'Active' ? 'text-[#009918]' : 'text-[#990000]'}`}>
+                  {campaignObj.campaignStatus}
                 </span>
               </div>
             </div>
@@ -229,6 +420,8 @@ const Campaign = () => {
                 <input
                   placeholder="e.g  The Future is now"
                   type="text"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
                   className="border border-[#999999] rounded-md p-[10px] w-full bg-transparent text-[#999999] font-[nunito] font-medium text-sm leading-5"
                 />
               </div>
@@ -240,6 +433,8 @@ const Campaign = () => {
                   <input
                     placeholder="dd/mm/yyy"
                     type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
                     className="border border-[#999999] rounded-md p-[10px] w-full bg-transparent text-[#999999] font-[nunito] font-medium text-sm leading-5"
                   />
                 </div>
@@ -250,6 +445,8 @@ const Campaign = () => {
                   <input
                     placeholder="dd/mm/yyy"
                     type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
                     className="border border-[#999999] rounded-md p-[10px] w-full bg-transparent text-[#999999] font-[nunito] font-medium text-sm leading-5"
                   />
                 </div>
@@ -259,11 +456,20 @@ const Campaign = () => {
                 <label className="font-[nunito] font-medium text-sm leading-5 text-[#666666]">
                   Linked Keywords
                 </label>
-                <div className="border border-[#999999] rounded-md p-[10px] w-full bg-transparent h-20">
-                  <div className="w-[73px] py-[5px] px-[10px] flex items-center gap-1 rounded-md bg-primary text-white cursor-pointer">
-                    <span className="font-[nunito] font-medium text-[10px] leading-[14px]">Fidelity</span>
-                    <MdOutlineClose className="text-white"/>
+                <div className="border border-[#999999] rounded-md p-[10px] w-full bg-transparent flex flex-wrap gap-1">
+                <input 
+                  value={linkText}
+                   placeholder="To add keywords, type your keyword and press enter"
+                    className="w-full pb-4 outline-none border-none"
+                    onChange={e => setLinKText(e.target.value)}
+                    onKeyDown={handleLinkedText}
+                />
+                {linkedArray && linkedArray.map((item,i) => ( 
+                  <div className="w-[73px] py-[5px] px-[10px] flex items-center justify-between rounded-md bg-primary text-white cursor-pointer" key={i}>
+                    <span className="font-[nunito] font-medium text-[10px] leading-[14px]">{item}</span>
+                    <MdOutlineClose className="text-white"  onClick={() => deleteItem(item)}/>
                   </div>
+                  ))}
                 </div>
               </div>
             
@@ -271,12 +477,15 @@ const Campaign = () => {
                 <label className="font-[nunito] font-medium text-sm leading-5 text-[#666666]">
                 Want to receive daily digest about the campaign?
                 </label>
-                <select className="border border-[#999999] rounded-md p-[10px] w-full bg-transparent text-[#999999] font-[nunito] font-medium text-sm leading-5">
+                <select 
+                value={digestValue}
+                onChange={e => setDigestValue(e.target.value)}
+                className="border border-[#999999] rounded-md p-[10px] w-full bg-transparent text-[#999999] font-[nunito] font-medium text-sm leading-5">
                   <option selected disabled>
                     Select
                   </option>
-                  <option value="yes">Yes</option>
-                  <option value="no">No</option>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
                 </select>
               </div>
 
@@ -284,7 +493,10 @@ const Campaign = () => {
                 <label className="font-[nunito] font-medium text-sm leading-5 text-[#666666]">
                   Kindly select how often you want to receive daily digest
                 </label>
-                <select className="border border-[#999999] rounded-md p-[10px] w-full bg-transparent text-[#999999] font-[nunito] font-medium text-sm leading-5">
+                <select
+                value={digest}
+                onChange={e => setDigest(e.target.value)}
+                 className="border border-[#999999] rounded-md p-[10px] w-full bg-transparent text-[#999999] font-[nunito] font-medium text-sm leading-5">
                   <option selected disabled>
                     Select
                   </option>
@@ -296,11 +508,15 @@ const Campaign = () => {
 
 
               <div className="pt-4 pb-4 flex items-center gap-4">
-                <span className="border border-#990000 bg-[#990000] text-white rounded-md w-[196px] pb-2 pt-[10px] flex items-center justify-center cursor-pointer font-[nunito] font-semibold text-sm leading-5">
+                <span
+                 onClick={() => stopCampaign(campaignObj)}
+                 className="border border-#990000 bg-[#990000] text-white rounded-md w-[196px] pb-2 pt-[10px] flex items-center justify-center cursor-pointer font-[nunito] font-semibold text-sm leading-5">
                 Stop Campaign
                 </span>
-                <span className="border border-primary bg-white text-primary rounded-md w-[196px] pb-2 pt-[10px] flex items-center justify-center cursor-pointer font-[nunito] font-semibold text-sm leading-5">
-                 Edit Information
+                <span 
+                  onClick={editCampaign}
+                className="border border-primary bg-white text-primary rounded-md w-[196px] pb-2 pt-[10px] flex items-center justify-center cursor-pointer font-[nunito] font-semibold text-sm leading-5">
+                {isLoading ? 'loading ...' : 'Edit Information'}
                 </span>
               </div>
             </section>

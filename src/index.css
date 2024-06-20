@@ -43,3 +43,17 @@ display: none;
 .ant-switch.ant-switch-checked:hover:not(.ant-switch-disabled){
   background-color: #6E0080; 
 }
+
+.custom-modal .ant-modal-close {
+  display: none; 
+}
+
+.ant-modal-content {
+  Padding:72px 78px 72px 78px;
+}
+
+.ant-modal .ant-modal-content {
+  Padding:72px 78px 72px 78px;
+  max-height: 353px;
+  max-width:572px
+}
