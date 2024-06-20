@@ -9,7 +9,8 @@ import edit from "../assets/editIcon.svg";
 import del from "../assets/delIcon.svg";
 import { campaignService } from "../services/campaign_service";
 import DeleteMessage from "../components/modals/deleteModal";
-import imgPlaceholder from '../assets/empty-place-holder.svg'
+import imgPlaceholder from '../assets/empty-place-holder.svg';
+import SuccessMessage from "../components/modals/successMessage";
 import {toast } from 'react-toastify';
 import moment from "moment";
 
@@ -49,6 +50,8 @@ const Campaign = () => {
   const [campaignObj,setCampaignObj] = useState({})
   const [isLoading,setIsLoading] = useState(false)
   const [modalOpen, setModalOpen] = useState(false);
+  const [modalEditOpen, setEditModalOpen] = useState(false);
+  const [text, setText] = useState("");
   const [id,setId] = useState('')
 
   const [name, setName] = useState('');
@@ -79,7 +82,7 @@ const Campaign = () => {
     return date.format('DD/MM/YYYY');
   };
 
-  const getAllCampaign = async () => { 
+  const getCampaign = async () => { 
    try {
     const  res = await campaignService.getAllCampaign();
     if(res.status == 200){ 
@@ -136,10 +139,11 @@ const Campaign = () => {
   };
 
   useEffect(() => {
-    getAllCampaign();
+    getCampaign();
   }, []);
 
   const viewCampaign = (item) => { 
+
     setCampaign(false)
     setCampaignObj(item)
     setLinkedArray([...item.linkedKeywords])
@@ -169,9 +173,9 @@ const Campaign = () => {
   return date.format('YYYY-MM-DD');
 };
 
-const stopCampaign = (id) => { 
+const stopCampaign = (data) => { 
   setModalOpen(true) 
-  setId(id)
+  setId(data.id)
 }
 
 const convertDateToISO = (dateString) => {
@@ -193,17 +197,14 @@ const data = {
   "campaignDescription":des
 }
 
-const editCampaign = async() => { 
+const handleSubmit = async() => { 
   setIsLoading(true)
     try{ 
     const res = await campaignService.editCampaign(data,campaignObj.id);
     if(res){ 
      setIsLoading(false)
-     toast.success('campaign successfully created')
-     console.log('res is here',res)
-    //  setTimeout(() => { 
-    //     navigate('/campaign')
-    //  },1500)
+     setEditModalOpen(true);
+     setText("Camapaign successfully Edited!");
      setName('');
      setStartDate('')
      setEndDate('')
@@ -225,8 +226,12 @@ const editCampaign = async() => {
         {modalOpen && <DeleteMessage 
            setModalOpen = {setModalOpen}
            modalOpen = {modalOpen}
-           goBack={goBack}
            id={id}
+           onClose={() => {
+            goBack();
+            setModalOpen(false)
+            getCampaign();
+            }}
         />}
           <Top className="mt-6">
             <h3 className="text-xl mb-0 leading-7 font-semibold font-[work-sans] text-primary">
@@ -380,13 +385,27 @@ const editCampaign = async() => {
         </Container>
       ) : (
         <Container className="h-[100%] w-[100%] flex flex-col">
-       {modalOpen && <DeleteMessage 
+        {modalOpen && <DeleteMessage 
            setModalOpen = {setModalOpen}
            modalOpen = {modalOpen}
            id={id}
-           goBack={goBack}
-
+           onClose={() => {
+            goBack();
+            setModalOpen(false)
+            getCampaign();
+            }}
         />}
+        {modalEditOpen && text && (
+        <SuccessMessage
+          text={text}
+          modalOpen={modalEditOpen}
+          onClose = {() => {
+            setCampaign(true);
+            setEditModalOpen(false);
+            getCampaign();
+            }}
+        />
+      )}
           <Top className="mt-6">
             <div 
             onClick={goBack}
@@ -514,7 +533,7 @@ const editCampaign = async() => {
                 Stop Campaign
                 </span>
                 <span 
-                  onClick={editCampaign}
+                  onClick={handleSubmit}
                 className="border border-primary bg-white text-primary rounded-md w-[196px] pb-2 pt-[10px] flex items-center justify-center cursor-pointer font-[nunito] font-semibold text-sm leading-5">
                 {isLoading ? 'loading ...' : 'Edit Information'}
                 </span>

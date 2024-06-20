@@ -29,7 +29,7 @@ const LoaderWrapper = styled.div`
   width: 100px;
   height: 4px;
   overflow: hidden;
-  background-color:rgba(247, 250, 252);
+  background-color:#247B7B;
   background-clip: padding-box;
 `
 

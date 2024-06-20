@@ -3,11 +3,12 @@ import {Modal } from 'antd';
 import img from '../../assets/check.svg'
 import { useNavigate } from 'react-router';
 
-const SuccessMessage = ({text,modalOpen,setModalOpen}) => {
+const SuccessMessage = ({text,modalOpen,onClose}) => {
    const navigate = useNavigate();
 
-   const goBack = () => { 
-    navigate('/campaign')
+   const goBack = () => {     
+     navigate('/campaign')
+     onClose();
    }
 
   return (
@@ -25,7 +26,7 @@ const SuccessMessage = ({text,modalOpen,setModalOpen}) => {
             </span>
           </div>
           <div className='font-[nunito] font-semibold text-sm leading-5 text-center text-[#666666]'>
-          Campingn Successfully Created! 
+          {text}
           </div>
           <div 
           onClick={goBack}

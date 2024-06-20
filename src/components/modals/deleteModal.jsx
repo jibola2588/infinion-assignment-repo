@@ -3,28 +3,30 @@ import { campaignService } from '../../services/campaign_service';
 import { useNavigate } from 'react-router';
 import {Modal } from 'antd';
 
-const DeleteMessage = ({modalOpen,setModalOpen,id,goBack}) => {
+const DeleteMessage = ({modalOpen,id,onClose,setModalOpen}) => {
     const navigate = useNavigate();
     const [isLoading,setIsLoading] = useState(false)
-    const [showMessage,SetShowMessage] = useState(false)
+    const [showMessage,SetShowMessage] = useState(true)
 
     const handleCancel = () => { 
       setModalOpen(false)
     }
 
     const goToCampaign = () => { 
-      setModalOpen(false)
-      goBack()
+      onClose();
      }
 
     const deleteCampaign = async () => { 
+
+      setIsLoading(true);
       try{ 
         const  res = await campaignService.deleteCampaign(id);
         if(res){ 
-
+          setIsLoading(false);
+          SetShowMessage(false)
         }
       }catch(err){ 
-
+        setIsLoading(false);
       }
     }
 
