@@ -42,8 +42,8 @@ const Campaign = () => {
   const [campaign, setCampaign] = useState(true);
   const [campaignData,setCampaignData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
-  const [active,setActive] = useState('');
-  const [inactive,setInActive] = useState('');
+  const [active,setActive] = useState(0);
+  const [inactive,setInActive] = useState(0);
   const [currentPage,setCurrentPage] = useState(1);
   const [pageSize,setPageSize] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");

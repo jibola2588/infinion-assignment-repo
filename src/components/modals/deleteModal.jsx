@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { campaignService } from '../../services/campaign_service'; 
 import { useNavigate } from 'react-router';
 import {Modal } from 'antd';
+import { toast } from 'react-toastify';
 
 const DeleteMessage = ({modalOpen,id,onClose,setModalOpen}) => {
     const navigate = useNavigate();
@@ -19,6 +20,7 @@ const DeleteMessage = ({modalOpen,id,onClose,setModalOpen}) => {
     const deleteCampaign = async () => { 
 
       setIsLoading(true);
+      console.log('id is here',id)
       try{ 
         const  res = await campaignService.deleteCampaign(id);
         if(res){ 
@@ -27,6 +29,7 @@ const DeleteMessage = ({modalOpen,id,onClose,setModalOpen}) => {
         }
       }catch(err){ 
         setIsLoading(false);
+        toast.danger('Request failed')
       }
     }
 
