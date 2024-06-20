@@ -57,3 +57,7 @@ display: none;
   max-height: 353px;
   max-width:572px
 }
+
+.ant-pagination .ant-pagination-item-active:hover a{
+  color:white;
+}
