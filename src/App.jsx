@@ -5,8 +5,6 @@ import { PageLoader } from "./components/loader";
 
 
 function App() {
-
-  console.log('routes is here',routes)
   return (
     <BrowserRouter>
       <Suspense fallback={<PageLoader/>}>

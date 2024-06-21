@@ -13,6 +13,7 @@ import imgPlaceholder from '../assets/empty-place-holder.svg';
 import SuccessMessage from "../components/modals/successMessage";
 import {toast } from 'react-toastify';
 import moment from "moment";
+import ViewCampaign from "../components/modals/viewModal";
 
 const Container = styled.div``;
 const Top = styled.div``;
@@ -50,6 +51,8 @@ const Campaign = () => {
   const [campaignObj,setCampaignObj] = useState({})
   const [isLoading,setIsLoading] = useState(false)
   const [modalOpen, setModalOpen] = useState(false);
+  const [viewData, setViewData] = useState(null);
+  const [modalViewOpen, setViewModalOpen] = useState(false);
   const [modalEditOpen, setEditModalOpen] = useState(false);
   const [text, setText] = useState("");
   const [id,setId] = useState('')
@@ -104,6 +107,11 @@ const Campaign = () => {
   }
   }
 
+  const handleView = (data) => { 
+    setViewModalOpen(true)
+    setViewData(data)
+  }
+
   const filterData = (status) => {
     let data = campaignData;
 
@@ -142,8 +150,7 @@ const Campaign = () => {
     getCampaign();
   }, []);
 
-  const viewCampaign = (item) => { 
-
+  const handleEdit = (item) => { 
     setCampaign(false)
     setCampaignObj(item)
     setLinkedArray([...item.linkedKeywords])
@@ -233,6 +240,15 @@ const handleSubmit = async() => {
             getCampaign();
             }}
         />}
+        { 
+          modalViewOpen && viewData &&
+          <ViewCampaign 
+            onClose ={() => setViewModalOpen(false)}
+            modalOpen = {modalViewOpen}
+            item = {viewData}
+          />
+        }
+
           <Top className="mt-6">
             <h3 className="text-xl mb-0 leading-7 font-semibold font-[work-sans] text-primary">
               All Campaigns
@@ -326,7 +342,7 @@ const handleSubmit = async() => {
                         </td>
                         <td className="whitespace-nowrap px-[10px] py-3 font-medium text-[#666666] text-sm leading-5 font-[nunito]">
                           <div className="flex items-center gap-6">
-                            <span onClick={() => viewCampaign(item)}>
+                            <span onClick={() => handleView(item)}>
                               <img
                                 src={view}
                                 alt="view icon"
@@ -335,7 +351,7 @@ const handleSubmit = async() => {
                             </span>
                             <span>
                               <img
-                              onClick={() => viewCampaign(item)}
+                              onClick={() => handleEdit(item)}
                                 src={edit}
                                 alt="edit icon"
                                 className="cursor-pointer"
