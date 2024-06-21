@@ -81,11 +81,11 @@ const ViewCampaign = ({ modalOpen, onClose, item }) => {
              {item.dailyDigest}
             </span>
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex items-start justify-between">
             <span className="font-[nunito] font-medium text-sm leading-5 text-[#000000]">
               Linked Keyword
             </span>
-            <div>
+            <div className="space-y-2">
             {item.linkedKeywords && item.linkedKeywords.map((item,i) => ( 
                   <div className="w-[73px] py-[5px] px-[10px] flex items-center justify-between rounded-md bg-primary text-white cursor-pointer" key={i}>
                     <span className="font-[nunito] font-bold text-[10px] leading-[14px]">{item}</span>
