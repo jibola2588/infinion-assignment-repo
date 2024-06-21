@@ -34,7 +34,7 @@ const Status = styled.div`
   font-weight: 700;
   font-size: 12px;
   line-height: 16px;
-  color: ${({ type }) => (type === "active" ? "#009918" : "#990000")};
+  color: ${({ type }) => (type === "Active" ? "#009918" : "#990000")};
 `;
 
 const Campaign = () => {
