@@ -1,11 +1,9 @@
 import React from "react";
-import { useNavigate } from "react-router";
 import moment from "moment";
 import { Modal } from "antd";
 import { MdKeyboardBackspace } from "react-icons/md";
 
 const ViewCampaign = ({ modalOpen, onClose, item }) => {
-  const navigate = useNavigate();
 
   const goBack = () => {
     onClose();
